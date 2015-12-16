@@ -66,6 +66,26 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)startRFID:(CDVInvokedUrlCommand *)command
+{
+	NSError *error;
+	CDVPluginResult* pluginResult = nil;
+    if (![dtdev rfInit:(RFIDTypePICO14443A | RFIDTypePICO15693 | RFIDTypeISO14443A | RFIDTypeISO15693 | RFIDTypeSTSRI | RFIDTypeFelica) error:&error]) {
+    	pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
+    } else {
+    	pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:[dtdev connstate]];
+    }
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)stopRFID:(CDVInvokedUrlCommand *)command
+{
+	NSError *error;
+    [dtdev rfClose:&error];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:[dtdev connstate]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void)startBarcode:(CDVInvokedUrlCommand *)command
 {
     [dtdev barcodeStartScan:nil];
@@ -156,6 +176,17 @@
 - (void) rfCardDetected: (int) cardIndex info:(DTRFCardInfo *) info {
     NSLog(@"rfCardDetected (debug): cardIndex - %d, info - %@", cardIndex, [info description]);
     NSLog(@"rfCardDetected (debug): cardIndex - %d, info - %@", cardIndex, [info debugDescription]);
+    
+    // Call rfRemoveCard to be able to receive others rfCardDetected calls
+    NSError *error;
+    if (![dtdev rfRemoveCard:cardIndex error:&error]) {
+        NSLog(@"rfRemoveCard error: %@", error);
+    }
+
+    NSString *uid = [self dataToString:info.UID reversed:NO];
+
+    NSString* retStr = [NSString stringWithFormat:@"LineaProCDV.onRFIDData('%@');", uid];
+    [self.webView stringByEvaluatingJavaScriptFromString:retStr];
 }
 
 - (void) rfCardRemoved: (int) cardIndex {
@@ -271,6 +302,24 @@
     NSLog(@"bluetoothDiscoverComplete: success - %d", success);
 }
 
-
+// Helper to convert data to NSString
+// TODO: Move it to a category
+- (NSString *)dataToString:(NSData *)data reversed:(BOOL)reversed
+{
+    const unsigned char *dataBuffer = (const unsigned char *)[data bytes];
+    if (!dataBuffer) {
+        return [NSString string];
+    }
+    NSMutableString *hexString  = [NSMutableString stringWithCapacity:(data.length * 2)];
+    for (int i = 0; i < data.length; ++i) {
+        NSString *byteString = [NSString stringWithFormat:@"%02X", (unsigned int)dataBuffer[i]];
+        if (reversed) {
+            [hexString insertString:byteString atIndex:0];
+        } else {
+            [hexString appendString:byteString];
+        }
+    }
+    return [NSString stringWithString:hexString];
+}
 
 @end

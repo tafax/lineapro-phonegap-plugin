@@ -15,11 +15,13 @@ var argscheck = require('cordova/argscheck'),
 }
 
 
-LineaProCDV.prototype.initDT = function(connectionCallback, cardCallback, barcCallback, cancelCallback, errorCallback) {
+LineaProCDV.prototype.initDT = function(connectionCallback, cardCallback, barcCallback, rfidCallback, cancelCallback, errorCallback) {
     this.results = [];
     this.connCallback = connectionCallback;
     this.cardDataCallback = cardCallback;
     this.barcodeCallback = barcCallback;
+    this.rfidCallback = rfidCallback;
+    this.errorCallback = errorCallback;
     exec(null, errorCallback, "LineaProCDV", "initDT", []);
     //alert("LineaProCDV");
 };
@@ -34,11 +36,11 @@ LineaProCDV.prototype.barcodeStop = function() {
                
 LineaProCDV.prototype.connectionChanged = function(state) {
     this.connCallback(state);
+    exec(null, this.errorCallback, "LineaProCDV", "startRFID", []);
 };
                
 LineaProCDV.prototype.onMagneticCardData = function(track1, track2, track3) {
     this.cardDataCallback(track1 + track2 + track3);
-    this.barcodeStart();
 };
 
 LineaProCDV.prototype.onBarcodeData = function(rawCodesArr, scanId, dob, state, city, expires, gender, height, weight, hair, eye, firstName, lastName) {
@@ -59,6 +61,9 @@ LineaProCDV.prototype.onBarcodeData = function(rawCodesArr, scanId, dob, state, 
                };
     this.barcodeCallback(data);
 };
-               
-              
+
+LineaProCDV.prototype.onRFIDData = function(uid) {
+    this.rfidCallback(uid);
+};
+
 module.exports = new LineaProCDV();
