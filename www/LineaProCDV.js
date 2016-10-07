@@ -27,18 +27,25 @@ LineaProCDV.prototype.initDT = function(connectionCallback, cardCallback, barcCa
 };
                
 LineaProCDV.prototype.barcodeStart = function() {
-    exec(null, null, "LineaProCDV", "startBarcode", []);
+    exec(null, this.errorCallback, "LineaProCDV", "startBarcode", []);
 };
 
 LineaProCDV.prototype.barcodeStop = function() {
-    exec(null, null, "LineaProCDV", "stopBarcode", []);
+    exec(null, this.errorCallback, "LineaProCDV", "stopBarcode", []);
 };
                
 LineaProCDV.prototype.connectionChanged = function(state) {
     this.connCallback(state);
-    exec(null, this.errorCallback, "LineaProCDV", "startRFID", []);
 };
-               
+
+LineaProCDV.prototype.rfidStart = function() {
+  exec(null, this.errorCallback, "LineaProCDV", "startRFID", []);
+};
+
+LineaProCDV.prototype.rfidStop = function() {
+  exec(null, this.errorCallback, "LineaProCDV", "stopRFID", []);
+};
+
 LineaProCDV.prototype.onMagneticCardData = function(track1, track2, track3) {
     this.cardDataCallback(track1 + track2 + track3);
 };
@@ -59,11 +66,16 @@ LineaProCDV.prototype.onBarcodeData = function(rawCodesArr, scanId, dob, state, 
                firstName: firstName,
                lastName: lastName
                };
+  console.log('Barcode data: ', data);
     this.barcodeCallback(data);
 };
 
 LineaProCDV.prototype.onRFIDData = function(uid) {
     this.rfidCallback(uid);
+};
+
+LineaProCDV.prototype.onLog = function(string) {
+  console.log(string);
 };
 
 module.exports = new LineaProCDV();

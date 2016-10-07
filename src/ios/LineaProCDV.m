@@ -19,7 +19,7 @@
 -(void) scannerConect:(NSString*)num {
     
     NSString *jsStatement = [NSString stringWithFormat:@"reportConnectionStatus('%@');", num];
-    [self.webView stringByEvaluatingJavaScriptFromString:jsStatement];
+    [self.webViewEngine evaluateJavaScript:jsStatement completionHandler:nil];
     
 }
 
@@ -34,7 +34,7 @@
         
         // send to web view
         NSString *jsStatement = [NSString stringWithFormat:@"reportBatteryStatus('%@');", status];
-        [self.webView stringByEvaluatingJavaScriptFromString:jsStatement];
+        [self.webViewEngine evaluateJavaScript:jsStatement completionHandler:nil];
         
     }
 }
@@ -42,7 +42,7 @@
 -(void) scanPaymentCard:(NSString*)num {
     
     NSString *jsStatement = [NSString stringWithFormat:@"onSuccessScanPaymentCard('%@');", num];
-    [self.webView stringByEvaluatingJavaScriptFromString:jsStatement];
+    [self.webViewEngine evaluateJavaScript:jsStatement completionHandler:nil];
 	[self.viewController dismissViewControllerAnimated:YES completion:nil];
     
 }
@@ -115,7 +115,7 @@
 	}
     
     NSString* retStr = [ NSString stringWithFormat:@"LineaProCDV.connectionChanged(%d);", state];
-    [[super webView] stringByEvaluatingJavaScriptFromString:retStr];
+    [self.webViewEngine evaluateJavaScript:retStr completionHandler:nil];
 }
 
 - (void) deviceButtonPressed: (int) which {
@@ -142,7 +142,7 @@
         NSLog(@"magneticCardData (full info): accountNumber - %@, cardholderName - %@, expirationYear - %@, expirationMonth - %@, serviceCode - %@, discretionaryData - %@, firstName - %@, lastName - %@", [card objectForKey:@"accountNumber"], [card objectForKey:@"cardholderName"], [card objectForKey:@"expirationYear"], [card objectForKey:@"expirationMonth"], [card objectForKey:@"serviceCode"], [card objectForKey:@"discretionaryData"], [card objectForKey:@"firstName"], [card objectForKey:@"lastName"]);
     }
     NSString* retStr = [ NSString stringWithFormat:@"LineaProCDV.onMagneticCardData('%@', '%@', '%@');", track1, track2, track3];
-    [[super webView] stringByEvaluatingJavaScriptFromString:retStr];
+    [self.webViewEngine evaluateJavaScript:retStr completionHandler:nil];
 }
 
 - (void) magneticCardEncryptedData: (int) encryption tracks:(int) tracks data:(NSData *) data {
@@ -186,7 +186,7 @@
     NSString *uid = [self dataToString:info.UID reversed:NO];
 
     NSString* retStr = [NSString stringWithFormat:@"LineaProCDV.onRFIDData('%@');", uid];
-    [self.webView stringByEvaluatingJavaScriptFromString:retStr];
+    [self.webViewEngine evaluateJavaScript:retStr completionHandler:nil];
 }
 
 - (void) rfCardRemoved: (int) cardIndex {
@@ -208,13 +208,13 @@
 - (void) barcodeData: (NSString *) barcode type:(int) type {
     NSLog(@"barcodeData: barcode - %@, type - %@", barcode, [dtdev barcodeType2Text:type]);
     NSString* retStr = [ NSString stringWithFormat:@"LineaProCDV.onBarcodeData('%@', '%@');", barcode, [dtdev barcodeType2Text:type]];
-    [[super webView] stringByEvaluatingJavaScriptFromString:retStr];
+    [self.webViewEngine evaluateJavaScript:retStr completionHandler:nil];
 }
 
 - (void) barcodeNSData: (NSData *) barcode isotype:(NSString *) isotype {
     NSLog(@"barcodeNSData: barcode - %@, type - %@", [[NSString alloc] initWithData:barcode encoding:NSUTF8StringEncoding], isotype);
     NSString* retStr = [ NSString stringWithFormat:@"LineaProCDV.onBarcodeData('%@', '%@');", [[NSString alloc] initWithData:barcode encoding:NSUTF8StringEncoding], isotype];
-    [[super webView] stringByEvaluatingJavaScriptFromString:retStr];
+    [self.webViewEngine evaluateJavaScript:retStr completionHandler:nil];
 }
 
 + (NSString*) getPDF417ValueByCode: (NSArray*) codesArr code:(NSString*)code {
@@ -274,7 +274,7 @@
     NSString* rawCodesArrJSString = [LineaProCDV generateStringForArrayEvaluationInJS:codesArr];
     //LineaProCDV.onBarcodeData(scanId, dob, state, city, expires, gender, height, weight, hair, eye)
     NSString* retStr = [ NSString stringWithFormat:@"var rawCodesArr = %@; LineaProCDV.onBarcodeData(rawCodesArr, '%@', '%@', '%@', '%@', '%@', '%@', '%@', '%@', '%@', '%@', '%@', '%@');", rawCodesArrJSString, license, dateBirth, state, city, expires, gender, height, weight, hair, eye, name, lastName];
-    [[super webView] stringByEvaluatingJavaScriptFromString:retStr];
+    [self.webViewEngine evaluateJavaScript:retStr completionHandler:nil];
 }
 
 - (void) bluetoothDeviceConnected: (NSString *) address {
